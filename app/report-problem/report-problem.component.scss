@@ -8,6 +8,11 @@
 
 }
 */
+#rapParent{
+    padding: 0 24px 16px;
+    background-color: #fff;
+}
+
 #reportAProblemBar {
     /* 1. Core Flexbox setup for centering */
     display: flex;
@@ -15,7 +20,7 @@
     align-items: center;     /* Vertically center content */
 background-color: #e6e6e6;
 height:50px;
-    /* 2. Ensure text and icons adopt the blue color */
+    
     
 }
 
