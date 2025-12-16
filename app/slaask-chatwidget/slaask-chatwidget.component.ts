@@ -8,7 +8,7 @@ declare var _slaask: any;
   templateUrl: './slaask-chatwidget.component.html',
   styleUrl: './slaask-chatwidget.component.scss'
 })
-export class SlaaskChatwidgetComponent {
+export class SlaaskChatwidgetComponent implements OnInit {
   ngOnInit(): void {
     // Check if script is already added
     if (!document.querySelector('script[src*="slaask.js"]')) {
