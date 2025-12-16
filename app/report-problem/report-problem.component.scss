@@ -19,20 +19,16 @@ height:50px;
     
 }
 
-/* 3. Target all direct descendants (span, a) to ensure they inherit the color */
-#reportAProblemBar > * {
-   
-}
+
 
 /* 4. Ensure the anchor text is also blue and that we override the inline style */
 #reportAProblemBar a {
     color: #5c92bd !important;
+    height: 24px;
+    text-decoration: none;
 }
 
-/* 5. Style for the SVG/Image container to ensure alignment */
-#reportAProblemBar img {
-    /* The blue color must be set on the parent of the SVG, or the SVG path itself. */
-    /* If the SVG is monochrome, this CSS trick might apply the color: */
-    filter: invert(36%) sepia(35%) saturate(836%) hue-rotate(177deg) brightness(91%) contrast(85%) !important;
-    /* This filter approximates #5c92bd. You might need to change the SVG itself. */
+#reportAProblemBar a:hover{
+    text-decoration: underline;
 }
+
