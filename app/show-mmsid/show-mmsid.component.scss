@@ -1,0 +1,22 @@
+ .mmsid-container{
+    display: flex;
+    flex-direction: row;
+    row-gap: 1rem;
+    justify-content: flex-start;
+    column-gap: 1rem;
+ }   
+.details-label-mmsid{
+    width: 9rem;
+    min-width: 9rem;
+    font: var(--sys-title-small);
+    letter-spacing: var(--sys-title-small-tracking);
+    display: inline-block;
+    padding-top: 1rem;
+
+}
+.details-mmsid {
+    font: var(--sys-body-medium);
+    letter-spacing: var(--sys-body-medium-tracking);
+    padding-top: 1rem;
+    display: inline-block;
+}   

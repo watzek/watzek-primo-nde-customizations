@@ -1,21 +1,19 @@
-<p>show-mmsid works!</p>
+@if (this.izShow == true) {
+<div class="mmsid-container full-display-detail ng-star-inserted">
 
-<div _ngcontent-ng-c3450719323="" class="full-display-detail ng-star-inserted" data-qa="detail_lds100">
-    <h5 _ngcontent-ng-c3450719323="" class="details-label mat-title-small">OCLC Number</h5>
-    <div _ngcontent-ng-c3450719323=""><!---->
-        <div _ngcontent-ng-c3450719323="" class="ng-star-inserted">
-            <div _ngcontent-ng-c3450719323="" class="flex-row flex-layout-center ng-star-inserted" aria-label="undefined42329309"><!---->
-                <span _ngcontent-ng-c3450719323="" class="break-word ng-star-inserted">
-                    <span dir="auto" class="mat-body-medium ng-star-inserted">42329309</span><!---->
-                </span><!----><!----><!---->
-            </div><!---->
-        </div>
-        <div _ngcontent-ng-c3450719323="" class="ng-star-inserted">
-            <div _ngcontent-ng-c3450719323="" class="flex-row flex-layout-center ng-star-inserted" aria-label="undefined923263710"><!----><!---->
-                <span _ngcontent-ng-c3450719323="" class="break-word ng-star-inserted">
-                    <span dir="auto" class="mat-body-medium ng-star-inserted">923263710</span><!----><!---->
-                </span><!----><!----><!---->
-            </div><!---->
-        </div><!----><!----><!---->
-    </div>
+    <h5 class="details-label-mmsid details-label mat-title-small">{{izLabel}}</h5>
+    <div class="details-mmsid">{{izMmsid}}</div>
 </div>
+}
+
+@if (this.nzShow == true) {
+<div class="mmsid-container">
+
+    <h5 class="details-label-mmsid details-label mat-title-small">{{nzLabel}}</h5>
+    <div class="details-mmsid">{{nzMmsid}}</div>
+</div>
+
+
+
+}
+
