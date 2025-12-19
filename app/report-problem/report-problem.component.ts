@@ -22,7 +22,7 @@ export class ReportProblemComponent {
 
     getUrlParameter(parameterName: string): string | null {
         const urlParams = new URLSearchParams(window.location.search);
-        console.log(urlParams.get(parameterName));
+        //console.log(urlParams.get(parameterName));
         return urlParams.get(parameterName);
     }
 
@@ -31,20 +31,20 @@ export class ReportProblemComponent {
 
     ngOnInit() {
         this.store.select(selectFullDisplayRecord).subscribe((record) => {
-            console.log('Record:', record);
+            //console.log('Record:', record);
 
            // this.docid=record.origRecordId;
             //this.docid = record?.origRecordId; //doesn't work for all records
             this.docid = record?.pnx?.control?.recordid[0]; //works reliably
 
-            console.log(this.docid);
+            //console.log(this.docid);
             this.context = record?.context;
             //this.vid=this.vid; //I guess redundant?
             
             const ndeSelector = 'nde-full-display-service-container-before-from-remote-0';
             // The actual NDE element this instance belongs to
             const hostNDE = this.el.nativeElement.closest(ndeSelector);
-            console.log(hostNDE);
+            //console.log(hostNDE);
 
             const allTargets = document.querySelectorAll(ndeSelector);
 

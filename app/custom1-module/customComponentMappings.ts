@@ -4,6 +4,7 @@ import {SlaaskChatwidgetComponent} from '../slaask-chatwidget/slaask-chatwidget.
 import {ReportProblemComponent} from '../report-problem/report-problem.component';
 import {ShowMmsidComponent} from '../show-mmsid/show-mmsid.component';
 import {LibraryCardsComponent} from '../library-cards/library-cards.component';
+import {NotOnShelfComponent} from '../not-on-shelf/not-on-shelf.component';
 
 
 
@@ -13,7 +14,8 @@ export const selectorComponentMap = new Map<string, any>([
     ['nde-footer-after', SlaaskChatwidgetComponent],
     ['nde-full-display-service-container-before', ReportProblemComponent],
     ['nde-full-display-details-after', ShowMmsidComponent],
-    ['nde-landing-page-before', LibraryCardsComponent]
+    ['nde-landing-page-before', LibraryCardsComponent],
+    ['nde-physical-availability-line-after', NotOnShelfComponent]
 
    
 
