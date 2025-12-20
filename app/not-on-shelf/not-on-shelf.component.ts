@@ -23,7 +23,14 @@ export const NOS_OPTIONS_TOKEN =
 export class NotOnShelfComponent {
   docid: string | undefined;
   deliv: any | undefined;
+  title: string | undefined;
+  author: string | undefined;
+  callNumber: string | undefined;
   mainLocation: any | undefined;
+  url: string | undefined;
+  record: any | undefined;
+  
+  nosShow= false;
 
 
    constructor(
@@ -46,32 +53,44 @@ export class NotOnShelfComponent {
         this.store
           .select(selectFullDisplayRecord)
           .pipe(
-            map(record => record?.pnx?.control?.recordid?.[0]),
-            filter(Boolean),
-            switchMap(docid =>
+            filter(record => !!record),
+            map(record => ({
+              record,
+              docid: record?.pnx?.control?.recordid?.[0]
+            })),
+            filter(({ docid }) => !!docid),
+            switchMap(({ record, docid }) =>
               this.store.select(selectDeliveryEntities).pipe(
                 map(delivRecord => {
                   const recordDelivery = delivRecord?.[docid];
 
                   return {
+                    record,
+                    docid,
                     delivery: recordDelivery,
-                    mainLocation: recordDelivery?.delivery?.bestlocation?.mainLocation,
-                    //links: recordDelivery?.links,
-                    //locations: recordDelivery?.locations
+                    mainLocation:
+                      recordDelivery?.delivery?.bestlocation?.mainLocation
                   };
                 })
               )
             )
           )
           .subscribe(result => {
+            this.record = result.record;
+            this.docid = result.docid;
             this.deliv = result.delivery;
-            console.log(this.deliv);
-            this.mainLocation=result.mainLocation;
-            console.log(this.mainLocation);
-            //this.availability = result.availability;
-            //this.links = result.links;
-            //this.locations = result.locations;
+            this.mainLocation = result.mainLocation;
+
+            if (this.nosOptions[this.mainLocation]) {
+              this.title=this.record?.pnx?.display?.title[0];
+              this.author=this.record?.pnx?.addata?.au[0];
+              this.callNumber=this.record?.enrichment?.virtualBrowseObject?.callNumber;
+              this.nosShow = true;
+              console.log(this.record);
+              console.log(this.title);
+            }
           });
+
 
     }
 
