@@ -23,12 +23,15 @@ export const NOS_OPTIONS_TOKEN =
 export class NotOnShelfComponent {
   docid: string | undefined;
   deliv: any | undefined;
-  title: string | undefined;
+  title: any | undefined;
   author: string | undefined;
   callNumber: string | undefined;
   mainLocation: any | undefined;
+  subLocation: any | undefined;
+  location: any | undefined;
   url: string | undefined;
   record: any | undefined;
+  mapping: any | undefined;
   
   nosShow= false;
 
@@ -82,16 +85,57 @@ export class NotOnShelfComponent {
             this.mainLocation = result.mainLocation;
 
             if (this.nosOptions[this.mainLocation]) {
+              var qm=this.nosOptions[this.mainLocation][0].query_mappings[0];
+              console.log(qm);
               this.title=this.record?.pnx?.display?.title[0];
               this.author=this.record?.pnx?.addata?.au[0];
               this.callNumber=this.record?.enrichment?.virtualBrowseObject?.callNumber;
+              //console.log(this.title);
               this.nosShow = true;
-              console.log(this.record);
-              console.log(this.title);
+              //console.log(this.record);
+              //console.log(this.deliv);
+              this.subLocation = this.deliv?.delivery?.bestlocation?.subLocation;
+              //console.log(this.subLocation);
+              this.location = this.mainLocation+" "+this.subLocation;
+              var urlBase = this.nosOptions[this.mainLocation][0].urlBase;
+              //console.log(urlBase);
+
+              const params = {
+                [qm.title]: this.title,
+                [qm.author]: this.author,
+                [qm.callnumber]: this.callNumber,
+                [qm.location]: this.location
+              };
+
+              this.url = this.buildUrl(urlBase, params);
+              console.log(this.url);
+
+
+
+
             }
           });
 
 
     }
+
+
+buildUrl(url: string, params: Record<string, string | undefined>): string {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value != null) {
+      searchParams.set(key, value);
+    }
+  });
+
+  const queryString = searchParams.toString();
+
+  return queryString
+    ? `${url}${url.includes('?') ? '&' : '?'}${queryString}`
+    : url;
+}
+
+
 
 }
