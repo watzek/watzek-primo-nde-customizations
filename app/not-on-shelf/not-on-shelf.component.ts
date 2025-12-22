@@ -53,68 +53,68 @@ export class NotOnShelfComponent {
         this.el.nativeElement.style.display = 'none';
       }
 
-        this.store
-          .select(selectFullDisplayRecord)
-          .pipe(
-            filter(record => !!record),
-            map(record => ({
-              record,
-              docid: record?.pnx?.control?.recordid?.[0]
-            })),
-            filter(({ docid }) => !!docid),
-            switchMap(({ record, docid }) =>
-              this.store.select(selectDeliveryEntities).pipe(
-                map(delivRecord => {
-                  const recordDelivery = delivRecord?.[docid];
+     this.store
+  .select(selectFullDisplayRecord)
+  .pipe(
+    filter(record => !!record),
 
-                  return {
-                    record,
-                    docid,
-                    delivery: recordDelivery,
-                    mainLocation:
-                      recordDelivery?.delivery?.bestlocation?.mainLocation
-                  };
-                })
-              )
-            )
-          )
-          .subscribe(result => {
-            this.record = result.record;
-            this.docid = result.docid;
-            this.deliv = result.delivery;
-            this.mainLocation = result.mainLocation;
+    map(record => ({
+      record,
+      docid: record?.pnx?.control?.recordid?.[0],
+      callNumber: record?.enrichment?.virtualBrowseObject?.callNumber,
+    })),
 
-            if (this.nosOptions[this.mainLocation]) {
-              var qm=this.nosOptions[this.mainLocation][0].query_mappings[0];
-              console.log(qm);
-              this.title=this.record?.pnx?.display?.title[0];
-              this.author=this.record?.pnx?.addata?.au[0];
-              this.callNumber=this.record?.enrichment?.virtualBrowseObject?.callNumber;
-              //console.log(this.title);
-              this.nosShow = true;
-              //console.log(this.record);
-              //console.log(this.deliv);
-              this.subLocation = this.deliv?.delivery?.bestlocation?.subLocation;
-              //console.log(this.subLocation);
-              this.location = this.mainLocation+" "+this.subLocation;
-              var urlBase = this.nosOptions[this.mainLocation][0].urlBase;
-              //console.log(urlBase);
+    filter(({ docid }) => !!docid),
+    filter(({ callNumber }) => !!callNumber),
 
-              const params = {
-                [qm.title]: this.title,
-                [qm.author]: this.author,
-                [qm.callnumber]: this.callNumber,
-                [qm.location]: this.location
-              };
+    switchMap(({ record, docid, callNumber }) =>
+      this.store.select(selectDeliveryEntities).pipe(
+        map(delivRecord => {
+          const recordDelivery = delivRecord?.[docid];
 
-              this.url = this.buildUrl(urlBase, params);
-              console.log(this.url);
+          return {
+            record,
+            docid,
+            delivery: recordDelivery,
+            mainLocation:
+              recordDelivery?.delivery?.bestlocation?.mainLocation,
+            callNumber
+          };
+        })
+      )
+    ),
 
+    // ⭐ THIS IS THE MISSING PIECE
+    filter(({ mainLocation }) => !!mainLocation),
+    filter(({ mainLocation }) => !!this.nosOptions[mainLocation])
+  )
+  .subscribe(result => {
+    this.record = result.record;
+    this.docid = result.docid;
+    this.deliv = result.delivery;
+    this.mainLocation = result.mainLocation;
+    this.callNumber = result.callNumber;
 
+    const qm = this.nosOptions[this.mainLocation][0].query_mappings[0];
 
+    this.title = this.record?.pnx?.display?.title?.[0];
+    this.author = this.record?.pnx?.addata?.au?.[0];
+    this.subLocation = this.deliv?.delivery?.bestlocation?.subLocation;
+    this.location = `${this.mainLocation} ${this.subLocation}`;
 
-            }
-          });
+    const urlBase = this.nosOptions[this.mainLocation][0].urlBase;
+
+    const params = {
+      [qm.title]: this.title,
+      [qm.author]: this.author,
+      [qm.callnumber]: this.callNumber,
+      [qm.location]: this.location
+    };
+
+    this.url = this.buildUrl(urlBase, params);
+    this.nosShow = true;
+  });
+
 
 
     }
