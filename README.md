@@ -5,7 +5,7 @@
 * Report a Problem
 * Add Slaask Chat Widget
 * Login Page Image - in src/assets/images, create a directory loginPage, and add an image loginPageImage.jpg. This will appear on the standalone login page (https://primo.lclark.edu/nde/login?vid=01ALLIANCE_LCC:LCCNDETEST)
-* Home page cards with dynamic content (library hours)
+* [Home page cards](https://github.com/watzek/watzek-primo-nde-customizations/tree/main/app/library-cards) with dynamic content (library hours)
 * Not on shelf - link from physical items to google form to report missing item
 
 
