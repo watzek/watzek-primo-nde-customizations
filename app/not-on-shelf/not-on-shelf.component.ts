@@ -31,25 +31,16 @@ export class NotOnShelfComponent {
     mainLocation: any | undefined;
     nosShow = false;
 
-    instCode = '01ALLIANCE_LCC';
-
-
-    izMmsid: string | null = null;
-    nzMmsid: string | null = null;
-
     constructor(private store: Store, private http: HttpClient, @Inject(NOS_OPTIONS_TOKEN) private nosOptions: NosOptions) { }
 
     ngOnInit() {
 
-
+        // only works on fulldisplay
         if (window.location.href.includes('fulldisplay')) {
             
             this.store.select(selectFullDisplayRecord).subscribe((record) => {
                 console.log('Record:', record);
-                const pnx = record?.pnx?.control;
-                console.log('PNX:', pnx);
-                const pnxfull = record?.pnx?.addata?.url;
-                console.log('PNX Full:', pnxfull);
+
                 // Extract the source record ID from the record's PNX control field
                 const recordId = record?.pnx?.control?.sourcerecordid;
                 const docid= record?.pnx?.control?.recordid?.[0];
@@ -62,120 +53,53 @@ export class NotOnShelfComponent {
                     const mainLocation= recordDelivery?.delivery?.bestlocation?.mainLocation
                     const subLocation = recordDelivery?.delivery?.bestlocation?.subLocation;
                     const callNumber = recordDelivery?.delivery?.bestlocation?.callNumber;
-                    const location = mainLocation+" "+subLocation;
-                    console.log(location);
 
-                    console.log(mainLocation);
-                    console.log(callNumber);
+                    // this functions to wait until callNumber is available before proceeding
+                    if (!callNumber) {
+                        // Delivery data not ready yet → do nothing
+                        return;
+                    }
+                    
+                    
+                    const location = mainLocation+" "+subLocation;
                     const urlBase = this.nosOptions[mainLocation][0].urlBase;
                     const qm = this.nosOptions[mainLocation][0].query_mappings[0];
-                    console.log(urlBase);
-                    console.log(qm);
-
-                        const params = {
+                    const params = {
                         [qm.title]: title,
                         [qm.author]: author,
                         [qm.callnumber]: callNumber,
                         [qm.location]: location
-                        };
+                    };
                     this.url = this.buildUrl(urlBase, params);
-                    this.nosShow = true;
+                    if(this.url){
+                        this.nosShow = true;
+                    }
+                    
 
                 });
 
-
-
-
-            if (Array.isArray(recordId) && typeof recordId[0] === 'string') {
-                this.selectedRecordId = recordId[0];
-            }
         });
         }
       
 
-
-
-
-
-
-
-        console.log('Source Record ID:', this.selectedRecordId);
-
-
-        //srcid is nz mmsid, implies no iz mmsid        
-        /*
-        if (this.selectedRecordId && this.selectedRecordId.startsWith('99') && !this.selectedRecordId.endsWith(this.izSuffix)) {
-            this.nzShow = true;
-            this.izShow = false;
-            this.nzMmsid = this.selectedRecordId ?? null;
-
-
-            //srcid is iz mmsid, check sru for nz mmsid
-        }
-        if (this.selectedRecordId && this.selectedRecordId.startsWith('99') && this.selectedRecordId.endsWith(this.izSuffix)) {
-            this.izShow = true;
-            this.izMmsid = this.selectedRecordId ?? null;
-            this.sruCall(this.selectedRecordId);
-        }
-
-        //neither iz nor nz mmsid
-        if (!this.selectedRecordId || !this.selectedRecordId.startsWith('99')) {
-            this.nzShow = false;
-            this.izShow = false;
-        }
-
-*/
-
-
-
-
       }
 
-buildUrl(url: string, params: Record<string, string | undefined>): string {
-  const searchParams = new URLSearchParams();
+        buildUrl(url: string, params: Record<string, string | undefined>): string {
+            const searchParams = new URLSearchParams();
 
-  Object.entries(params).forEach(([key, value]) => {
-    if (value != null) {
-      searchParams.set(key, value);
-    }
-  });
-
-  const queryString = searchParams.toString();
-
-  return queryString
-    ? `${url}${url.includes('?') ? '&' : '?'}${queryString}`
-    : url;
-}
-
-
-
-private sruCall(mmsid: string): void {
-        const url = `https://na01.alma.exlibrisgroup.com/view/sru/${this.instCode}?version=1.2&operation=searchRetrieve&query=alma.mms_id=${mmsid}`;
-        console.log('SRU URL:', url);
-        this.http.get(url, { responseType: 'text' }).subscribe(response => {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(response, 'text/xml');
-            const fields = xmlDoc.getElementsByTagName('datafield');
-
-            let found = false;
-            for (let i = 0; i < fields.length; i++) {
-                const field = fields[i];
-                if (field.getAttribute('tag') === '035') {
-                    const subfield = field.getElementsByTagName('subfield')[0]?.textContent;
-                    if (subfield?.includes('(EXLNZ-01ALLIANCE_NETWORK)')) {
-                        const pieces = subfield.split(')');
-                        this.nzMmsid = pieces[1];
-                        console.log('NZ MMSID:', this.nzMmsid);
-                        found = true;
-                        break;
-                    }
+            Object.entries(params).forEach(([key, value]) => {
+                if (value != null) {
+                searchParams.set(key, value);
                 }
-            }
-            if (!found) {
-                //this.nzShow = false;
-            }
-        });
-    }
+            });
+
+            const queryString = searchParams.toString();
+
+            return queryString
+                ? `${url}${url.includes('?') ? '&' : '?'}${queryString}`
+                : url;
+        }
+
 
 
 
