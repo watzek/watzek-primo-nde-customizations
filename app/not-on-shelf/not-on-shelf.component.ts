@@ -1,12 +1,17 @@
-import { selectFullDisplayRecord } from '../utils/fullDisplayRecordSelector';
 import {selectDeliveryEntities} from '../utils/DeliveryRecordSelector';
+import { selectFullDisplayRecord } from '../utils/fullDisplayRecordSelector';
 import { Component, Input, OnInit, ElementRef, InjectionToken, Inject } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { map, filter, switchMap } from 'rxjs/operators';
+import {Store} from '@ngrx/store';
+import { CommonModule } from '@angular/common';
 import {NosOptions, NOS_OPTIONS} from './nos-options.config';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 export const NOS_OPTIONS_TOKEN =
   new InjectionToken<NosOptions>('NOS_OPTIONS');
+
+///note HttpClientModule works on my laptop (Angular v18.2.8), but not at work
+
+
 
 @Component({
   selector: 'custom-not-on-shelf',
@@ -19,106 +24,112 @@ export const NOS_OPTIONS_TOKEN =
   ]
 })
 
-
 export class NotOnShelfComponent {
-  docid: string | undefined;
-  deliv: any | undefined;
-  title: any | undefined;
-  author: string | undefined;
-  callNumber: string | undefined;
-  mainLocation: any | undefined;
-  subLocation: any | undefined;
-  location: any | undefined;
-  url: string | undefined;
-  record: any | undefined;
-  mapping: any | undefined;
-  
-  nosShow= false;
+    docid: string | undefined;
+    selectedRecordId: string | undefined;
+    url: string | undefined;
+    mainLocation: any | undefined;
+    nosShow = false;
+
+    instCode = '01ALLIANCE_LCC';
 
 
-   constructor(
-    private store: Store, 
-    private el: ElementRef,
-    @Inject(NOS_OPTIONS_TOKEN) private nosOptions: NosOptions 
-    //makes this.nosOptions available to class
-    ) { }
+    izMmsid: string | null = null;
+    nzMmsid: string | null = null;
 
+    constructor(private store: Store, private http: HttpClient, @Inject(NOS_OPTIONS_TOKEN) private nosOptions: NosOptions) { }
 
     ngOnInit() {
-      const isFullDisplay =
-        window.location.pathname.includes('fulldisplay') ||
-        new URLSearchParams(window.location.search).has('docid');
 
-      if (!isFullDisplay) {
-        this.el.nativeElement.style.display = 'none';
+
+        if (window.location.href.includes('fulldisplay')) {
+            
+            this.store.select(selectFullDisplayRecord).subscribe((record) => {
+                console.log('Record:', record);
+                const pnx = record?.pnx?.control;
+                console.log('PNX:', pnx);
+                const pnxfull = record?.pnx?.addata?.url;
+                console.log('PNX Full:', pnxfull);
+                // Extract the source record ID from the record's PNX control field
+                const recordId = record?.pnx?.control?.sourcerecordid;
+                const docid= record?.pnx?.control?.recordid?.[0];
+                const title = record?.pnx?.display?.title?.[0];
+                const author = record?.pnx?.addata?.au?.[0];
+
+                this.store.select(selectDeliveryEntities).subscribe((deliv) => {
+                    console.log('Record:', deliv);
+                    const recordDelivery = deliv?.[docid];
+                    const mainLocation= recordDelivery?.delivery?.bestlocation?.mainLocation
+                    const subLocation = recordDelivery?.delivery?.bestlocation?.subLocation;
+                    const callNumber = recordDelivery?.delivery?.bestlocation?.callNumber;
+                    const location = mainLocation+" "+subLocation;
+                    console.log(location);
+
+                    console.log(mainLocation);
+                    console.log(callNumber);
+                    const urlBase = this.nosOptions[mainLocation][0].urlBase;
+                    const qm = this.nosOptions[mainLocation][0].query_mappings[0];
+                    console.log(urlBase);
+                    console.log(qm);
+
+                        const params = {
+                        [qm.title]: title,
+                        [qm.author]: author,
+                        [qm.callnumber]: callNumber,
+                        [qm.location]: location
+                        };
+                    this.url = this.buildUrl(urlBase, params);
+                    this.nosShow = true;
+
+                });
+
+
+
+
+            if (Array.isArray(recordId) && typeof recordId[0] === 'string') {
+                this.selectedRecordId = recordId[0];
+            }
+        });
+        }
+      
+
+
+
+
+
+
+
+        console.log('Source Record ID:', this.selectedRecordId);
+
+
+        //srcid is nz mmsid, implies no iz mmsid        
+        /*
+        if (this.selectedRecordId && this.selectedRecordId.startsWith('99') && !this.selectedRecordId.endsWith(this.izSuffix)) {
+            this.nzShow = true;
+            this.izShow = false;
+            this.nzMmsid = this.selectedRecordId ?? null;
+
+
+            //srcid is iz mmsid, check sru for nz mmsid
+        }
+        if (this.selectedRecordId && this.selectedRecordId.startsWith('99') && this.selectedRecordId.endsWith(this.izSuffix)) {
+            this.izShow = true;
+            this.izMmsid = this.selectedRecordId ?? null;
+            this.sruCall(this.selectedRecordId);
+        }
+
+        //neither iz nor nz mmsid
+        if (!this.selectedRecordId || !this.selectedRecordId.startsWith('99')) {
+            this.nzShow = false;
+            this.izShow = false;
+        }
+
+*/
+
+
+
+
       }
-
-     this.store
-  .select(selectFullDisplayRecord)
-  .pipe(
-    filter(record => !!record),
-
-    map(record => ({
-      record,
-      docid: record?.pnx?.control?.recordid?.[0],
-      callNumber: record?.enrichment?.virtualBrowseObject?.callNumber,
-    })),
-
-    filter(({ docid }) => !!docid),
-    filter(({ callNumber }) => !!callNumber),
-
-    switchMap(({ record, docid, callNumber }) =>
-      this.store.select(selectDeliveryEntities).pipe(
-        map(delivRecord => {
-          const recordDelivery = delivRecord?.[docid];
-
-          return {
-            record,
-            docid,
-            delivery: recordDelivery,
-            mainLocation:
-              recordDelivery?.delivery?.bestlocation?.mainLocation,
-            callNumber
-          };
-        })
-      )
-    ),
-
-    // ⭐ THIS IS THE MISSING PIECE
-    filter(({ mainLocation }) => !!mainLocation),
-    filter(({ mainLocation }) => !!this.nosOptions[mainLocation])
-  )
-  .subscribe(result => {
-    this.record = result.record;
-    this.docid = result.docid;
-    this.deliv = result.delivery;
-    this.mainLocation = result.mainLocation;
-    this.callNumber = result.callNumber;
-
-    const qm = this.nosOptions[this.mainLocation][0].query_mappings[0];
-
-    this.title = this.record?.pnx?.display?.title?.[0];
-    this.author = this.record?.pnx?.addata?.au?.[0];
-    this.subLocation = this.deliv?.delivery?.bestlocation?.subLocation;
-    this.location = `${this.mainLocation} ${this.subLocation}`;
-
-    const urlBase = this.nosOptions[this.mainLocation][0].urlBase;
-
-    const params = {
-      [qm.title]: this.title,
-      [qm.author]: this.author,
-      [qm.callnumber]: this.callNumber,
-      [qm.location]: this.location
-    };
-
-    this.url = this.buildUrl(urlBase, params);
-    this.nosShow = true;
-  });
-
-
-
-    }
-
 
 buildUrl(url: string, params: Record<string, string | undefined>): string {
   const searchParams = new URLSearchParams();
@@ -135,6 +146,36 @@ buildUrl(url: string, params: Record<string, string | undefined>): string {
     ? `${url}${url.includes('?') ? '&' : '?'}${queryString}`
     : url;
 }
+
+
+
+private sruCall(mmsid: string): void {
+        const url = `https://na01.alma.exlibrisgroup.com/view/sru/${this.instCode}?version=1.2&operation=searchRetrieve&query=alma.mms_id=${mmsid}`;
+        console.log('SRU URL:', url);
+        this.http.get(url, { responseType: 'text' }).subscribe(response => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(response, 'text/xml');
+            const fields = xmlDoc.getElementsByTagName('datafield');
+
+            let found = false;
+            for (let i = 0; i < fields.length; i++) {
+                const field = fields[i];
+                if (field.getAttribute('tag') === '035') {
+                    const subfield = field.getElementsByTagName('subfield')[0]?.textContent;
+                    if (subfield?.includes('(EXLNZ-01ALLIANCE_NETWORK)')) {
+                        const pieces = subfield.split(')');
+                        this.nzMmsid = pieces[1];
+                        console.log('NZ MMSID:', this.nzMmsid);
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (!found) {
+                //this.nzShow = false;
+            }
+        });
+    }
 
 
 
