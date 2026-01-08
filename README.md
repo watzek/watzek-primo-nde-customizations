@@ -13,3 +13,13 @@
 
 ### Notes
 * Needed to update [src/app/app.module.ts](https://github.com/watzek/watzek-primo-nde-customizations/blob/main/app/app.module.ts) to import HttpClientModule and include it in the @NgModule imports list.
+
+* For adding non NDE-specific files and folders, mainly for GitHub repo documentation, you can create a `.npmignore` file in the customModule-main directory. It works like `.gitignore`, where you can list files and folders to be ignored during npm build processes. Ours looks like this:
+
+```
+.git/
+.gitignore
+README.md
+repo-images/
+
+```
