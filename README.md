@@ -13,7 +13,7 @@ README.md
 repo-images/
 
 ```
-So when you run `npm run build` or `npm run start:proxy`, these additional files shouldn't break things.
+So when you run `npm run build` or `npm run start:proxy`, these additional files/folders shouldn't break things.
 
 
 [Current development site](https://primo.lclark.edu/nde/home?vid=01ALLIANCE_LCC:LCCNDETEST&lang=en).
