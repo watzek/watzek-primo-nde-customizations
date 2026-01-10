@@ -30,10 +30,11 @@ export class ReservesRequestComponent {
 
   constructor(private store: Store, private http: HttpClient) { }
 
-  const selectUserFeature = createFeatureSelector<{isLoggedIn: boolean}>('user');
-const selectIsLoggedIn = createSelector(selectUserFeature, state => state.isLoggedIn);
+ // const selectUserFeature = createFeatureSelector<{isLoggedIn: boolean}>('user');
+//const selectIsLoggedIn = createSelector(selectUserFeature, state => state.isLoggedIn);
 
       ngOnInit() {
+        /*
           this.store.select(selectFullDisplayRecord).subscribe((record) => {
               console.log('Record:', record);
               const pnx = record?.pnx?.control;
@@ -46,7 +47,7 @@ const selectIsLoggedIn = createSelector(selectUserFeature, state => state.isLogg
               if (Array.isArray(recordId) && typeof recordId[0] === 'string') {
                   this.selectedRecordId = recordId[0];
               }
-          });
+          });*/
         }
 
 
