@@ -1,56 +1,58 @@
-import {ChangeDetectionStrategy, Component, inject} from '@angular/core';
-import {MatCardModule} from '@angular/material/card';
-import {MatIcon} from '@angular/material/icon';
+import { Component, inject } from '@angular/core';
+import { Store } from '@ngrx/store';
 import {MatDialog,
   MAT_DIALOG_DATA,
   MatDialogTitle,
   MatDialogContent, MatDialogModule} from '@angular/material/dialog';
-import {MatButtonModule} from '@angular/material/button';
 import { FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import {Store} from '@ngrx/store';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-//import { jwtDecode } from 'jwt-decode';
-
-
-//https://material.angular.dev/components/dialog/examples
-// https://blog.angular-university.io/angular-material-dialog/
-
+import {MatCardModule} from '@angular/material/card';
+import {MatIcon} from '@angular/material/icon';
+import {MatButtonModule} from '@angular/material/button';
 
 @Component({
   selector: 'custom-reserves-request',
   standalone: true,
-  imports: [MatCardModule, MatIcon, MatButtonModule, MatDialogModule],
   templateUrl: './reserves-request.component.html',
   styleUrl: './reserves-request.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  imports: [MatCardModule, MatIcon, MatButtonModule, MatDialogModule]
 })
 export class ReservesRequestComponent {
+  reservesRequestShow = false;
 
-  constructor(private store: Store, private http: HttpClient) { }
+  constructor(private store: Store<any>) {}
 
- // const selectUserFeature = createFeatureSelector<{isLoggedIn: boolean}>('user');
-//const selectIsLoggedIn = createSelector(selectUserFeature, state => state.isLoggedIn);
+  ngOnInit() {
+    this.store.select('user').subscribe(user => {
 
-      ngOnInit() {
-        /*
-          this.store.select(selectFullDisplayRecord).subscribe((record) => {
-              console.log('Record:', record);
-              const pnx = record?.pnx?.control;
-              console.log('PNX:', pnx);
-              const pnxfull = record?.pnx?.addata?.url;
-              console.log('PNX Full:', pnxfull);
-              // Extract the source record ID from the record's PNX control field
-              const recordId = record?.pnx?.control?.sourcerecordid;
-  
-              if (Array.isArray(recordId) && typeof recordId[0] === 'string') {
-                  this.selectedRecordId = recordId[0];
-              }
-          });*/
-        }
+      if (!user?.jwt) return;
+
+      console.log('USER STATE:', user);
+      let isLoggedIn=user?.isLoggedIn;
+
+      const decodedJwt = JSON.parse(atob(user.jwt.split('.')[1]));
+      const userGroup = decodedJwt?.userGroup;
+      console.log(userGroup);
+
+      if (['2', '3'].includes(String(userGroup))) { //only displays if user is member of Alma groups 2 or 3 (Fac or Staff)
+        console.log('you are legit');
+        this.reservesRequestShow = true;
 
 
+
+
+
+
+
+
+      }
+      
+
+
+
+    });
+  }
 
   readonly dialog = inject(MatDialog);
 
@@ -62,7 +64,13 @@ export class ReservesRequestComponent {
     });
   }
 
+
+
+
+
 }
+
+
 
 @Component({
   selector: 'reserves-request-dialog',
@@ -79,3 +87,4 @@ export class ReservesRequestComponent {
 export class ReservesRequestDialog {
   data = inject(MAT_DIALOG_DATA);
 }
+
