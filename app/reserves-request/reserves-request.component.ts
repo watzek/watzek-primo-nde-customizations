@@ -41,12 +41,6 @@ export class ReservesRequestComponent {
         this.reservesRequestShow = true;
 
 
-
-
-
-
-
-
       }
       
 
@@ -59,10 +53,14 @@ export class ReservesRequestComponent {
 
   openDialog() {
     const dialogRef = this.dialog.open(ReservesRequestDialog);
-
     dialogRef.afterClosed().subscribe(result => {
       console.log(`Dialog result: ${result}`);
     });
+    //need to get title, callNumber, author, location, permalink, availability, 
+
+
+
+
   }
 
 
