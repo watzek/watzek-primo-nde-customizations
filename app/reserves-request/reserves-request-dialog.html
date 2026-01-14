@@ -1,67 +1,49 @@
-<h2 mat-dialog-title>Place Item on Reserve</h2>
-
-<div class="example-container">
-  <mat-label>First name</mat-label>
-  <mat-form-field appearance="fill">
-    <input _ngcontent-ng-c133002507="" autocomplete="off" matinput="" type="text" id="main-search-bar" class="mat-mdc-input-element mat-mdc-autocomplete-trigger search-input-field cdk-text-field-autofill-monitored" aria-label="Search field" aria-invalid="false" aria-required="false" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-haspopup="listbox" placeholder="Search anything">
-  </mat-form-field>
-   <mat-label>Last name</mat-label>
-  <mat-form-field appearance="outline">
-    <input matInput>
-  </mat-form-field>
-</div>
-
-
-
-<mat-dialog-content class="mat-typography">
-
-  <div>
-    <mat-label>Course</mat-label>
-    <mat-form-field appearance="outline" >
+<div class="container" id="reservesRequestForm">
+    <h5 class="heading">Place item on reserve</h5>
+    <form #courseForm="ngForm" (ngSubmit)="submitForm(courseForm)">
+   
+      <div class="form-group">
+        <label for="course">Course</label>
+        <input type="text" class="form-control" id="course" name="course" [(ngModel)]="courseDetails.course" required placeholder="e.g. Art 101">
+        <div *ngIf="courseForm.controls.course?.touched && courseForm.controls.course?.invalid" class="text-danger">
+          Course is required.
+        </div>
+      </div>
       
-      <input placeholder="e.g. Art 101" type="text" matInput autocomplete="off">
+      <div class="form-group">
+        <label for="courseTitle">Course Title</label>
+        <input type="text" class="form-control" id="courseTitle" name="courseTitle" [(ngModel)]="courseDetails.courseTitle" required placeholder="e.g. Intro to Art">
+        <div *ngIf="courseForm.controls.courseTitle?.touched && courseForm.controls.courseTitle?.invalid" class="text-danger">
+          Please enter the course title.
+        </div>
+      </div>
+  
 
-    </mat-form-field>
+  
+
+  
+
+  
+      <div class="form-group">
+        <label for="gender">Loan Period</label>
+        <select class="form-control" id="loanPeriod" name="loanPeriod" [(ngModel)]="courseDetails.loanPeriod" required>
+          <option value="" disabled>Select Loan Period</option>
+          <option value="3 hours">3 hours</option>
+          <option value="24 hours">24 hours</option>
+          <option value="72 hours">72 hours</option>
+        </select>
+        <div *ngIf="courseForm.controls.loanPeriod?.touched && courseForm.controls.loanPeriod?.invalid" class="text-danger">
+          Please select a loan period.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="comments">Comments</label>
+        <textarea class="form-control" id="comments" name="comments" [(ngModel)]="courseDetails.comments"></textarea>
+        
+
+      </div>
+<button type="cancel" class="btn btn-primary">Cancel</button>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
   </div>
-<div>
-  <mat-form-field appearance="outline">
-
-    <input placeholder="Course Title (e.g. Intro to Art)" type="text" matInput autocomplete="off">
-  </mat-form-field>
-</div>
-<div>
-  <mat-form-field appearance="outline">
-    <select placeholder="Loan Period" type="text" matInput autocomplete="off">
-      <option value="3 hours">3 hours</option>
-      <option value="24 hours">24 hours</option>
-      <option value="72 hours">72 hours</option>
-
-    </select>
-
-  </mat-form-field>
-</div>
-<div>
-  <mat-form-field>
-    <textarea placeholder="Comments"></textarea>
-  </mat-form-field>
-  </div>
-
-
-
-
-
-<mat-form-field appearance="outline">
-  <mat-label>Email Address</mat-label>
-  <input matInput placeholder="Enter your email">
-</mat-form-field>
-
-
-
-</mat-dialog-content>
-<!--
-<mat-dialog-actions align="end">
-  <button matButton mat-dialog-close>Cancel</button>
-  <button matButton [mat-dialog-close]="true" cdkFocusInitial>Install</button>
-</mat-dialog-actions>
-
--->
