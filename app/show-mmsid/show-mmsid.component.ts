@@ -47,10 +47,6 @@ export class ShowMmsidComponent {
         });
 
         console.log('Source Record ID:', this.selectedRecordId);
-        /*         if (this.selectedRecordId && this.selectedRecordId.startsWith('99')) {
-                    this.izShow = true;
-                    this.nzShow = true;
-                } */
 
         //srcid is nz mmsid, implies no iz mmsid        
         if (this.selectedRecordId && this.selectedRecordId.startsWith('99') && !this.selectedRecordId.endsWith(this.izSuffix)) {
