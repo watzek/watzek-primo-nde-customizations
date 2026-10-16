@@ -5,7 +5,7 @@
       <div class="form-group">
         <label for="course">Course</label>
         <input type="text" class="form-control" id="course" name="course" [(ngModel)]="courseDetails.course" required placeholder="e.g. Art 101">
-        <div *ngIf="courseForm.controls.course?.touched && courseForm.controls.course?.invalid" class="text-danger">
+        <div *ngIf="courseForm.controls['course']?.touched && courseForm.controls['course']?.invalid" class="text-danger">
           Course is required.
         </div>
       </div>
@@ -13,7 +13,7 @@
       <div class="form-group">
         <label for="courseTitle">Course Title</label>
         <input type="text" class="form-control" id="courseTitle" name="courseTitle" [(ngModel)]="courseDetails.courseTitle" required placeholder="e.g. Intro to Art">
-        <div *ngIf="courseForm.controls.courseTitle?.touched && courseForm.controls.courseTitle?.invalid" class="text-danger">
+        <div *ngIf="courseForm.controls['courseTitle']?.touched && courseForm.controls['courseTitle']?.invalid" class="text-danger">
           Please enter the course title.
         </div>
       </div>
@@ -32,7 +32,7 @@
           <option value="24 hours">24 hours</option>
           <option value="72 hours">72 hours</option>
         </select>
-        <div *ngIf="courseForm.controls.loanPeriod?.touched && courseForm.controls.loanPeriod?.invalid" class="text-danger">
+        <div *ngIf="courseForm.controls['loanPeriod']?.touched && courseForm.controls['loanPeriod']?.invalid" class="text-danger">
           Please select a loan period.
         </div>
       </div>
@@ -44,7 +44,7 @@
 
       </div>
       <div class="button-row">
-        <button type="cancel" class="btn btn-primary" (click)="cancel()">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="cancel()">Cancel</button>
         <button type="submit" class="btn btn-primary">Submit</button>
       </div>
     </form>

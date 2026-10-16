@@ -1,5 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CommonModule, } from '@angular/common';
 import { Store } from '@ngrx/store';
+import { combineLatest } from 'rxjs';
 import {MatDialog,
   MAT_DIALOG_DATA,
   MatDialogTitle,
@@ -19,7 +22,7 @@ import {selectDeliveryEntities} from '../utils/DeliveryRecordSelector'; //for be
   standalone: true,
   templateUrl: './reserves-request.component.html',
   styleUrl: './reserves-request.component.scss',
-  imports: [MatCardModule, MatIcon, MatButtonModule, MatDialogModule]
+  imports: [MatCardModule, MatIcon, MatButtonModule, MatDialogModule, CommonModule]
 })
 
 /**
@@ -54,123 +57,87 @@ export class ReservesRequestComponent {
   vid: string | null = this.getUrlParameter('vid');
   context="";
   docid="";
+
   
+
+  private destroyRef = inject(DestroyRef);
 
   constructor(private store: Store<any>) {}
 
   ngOnInit() {
-    
-    //for user details
-    this.store.select('user').subscribe(user => {
-      if (!user?.jwt) return;
-      console.log('USER STATE:', user);
-      let isLoggedIn=user?.isLoggedIn;
 
-      const decodedJwt = JSON.parse(atob(user.jwt.split('.')[1]));
-      const userGroup = decodedJwt?.userGroup;
-      console.log(userGroup);
+    //combineLatest re-runs this whenever user, record, or delivery data changes,
+    //so the display decision is always made with the latest values of all three
+    combineLatest([
+      this.store.select('user'),
+      this.store.select(selectFullDisplayRecord),
+      this.store.select(selectDeliveryEntities)
+    ]).pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([user, record, deliv]) => {
 
-      //for pnx details
-      this.store.select(selectFullDisplayRecord).subscribe((record) => {
-        this.docid= record?.pnx?.control?.recordid?.[0];
-        
+      //for user details
+      if (user?.jwt) {
+        const decodedJwt = JSON.parse(atob(user.jwt.split('.')[1]));
+        const userGroup = decodedJwt?.userGroup;
+        //only displays if user is member of Alma groups 2 or 3 (Fac or Staff)
+        this.validUser = ['2', '3'].includes(String(userGroup));
+      }
+      else {
+        this.validUser = false;
+      }
 
-        var pieces=this.docid.split("_");
-        this.isCdi=pieces.includes("cdi");
+      //for pnx details; record may not be loaded yet
+      if (!record?.pnx) {
+        this.updateDisplay();
+        return;
+      }
+      this.docid = record.pnx.control?.recordid?.[0] ?? "";
 
-        if(this.isCdi==true){this.context="PC";}
-        else{this.context="L";}
+      var pieces=this.docid.split("_");
+      this.isCdi=pieces.includes("cdi");
 
-        var format=record?.pnx.display.type[0];
-        var formatCheck = this.formatDenyList.indexOf(format);
-          
-        if (formatCheck >= 0) {
-          this.validFormat = false;
-        } else {
-          this.validFormat = true;
+      if(this.isCdi==true){this.context="PC";}
+      else{this.context="L";}
+
+      var format=record.pnx.display?.type?.[0];
+      this.validFormat = !this.formatDenyList.includes(format);
+      this.title = record.pnx.display?.title?.[0];
+      this.author = record.pnx.addata?.au?.[0];
+
+      //for delivery details; may arrive after the record
+      const recordDelivery = deliv?.[this.docid];
+      this.libraryOwns=this.doesLibraryOwn(recordDelivery);
+
+      //callNumber lookup should depend on delivery category
+      var dCat=recordDelivery?.delivery?.deliveryCategory ?? [];
+      if(dCat.includes("Alma-E")){
+        this.delivCat="Alma-E";
+        this.callNumber="N/A";
+        this.location="Electronic Resource";
+        this.availability="Electronic";
+      }
+      if(dCat[0]=="Alma-P" && dCat.length==1){
+        this.delivCat="Alma-P";
+        const bestLocation = recordDelivery?.delivery?.bestlocation;
+        if(bestLocation==null){
+          this.location="N/A";
+          this.availability="N/A";
         }
-        this.title = record?.pnx?.display?.title?.[0];
-        this.author = record?.pnx?.addata?.au?.[0];
-
-        //for delivery details
-        this.store.select(selectDeliveryEntities).subscribe((deliv) => {
-          const recordDelivery = deliv?.[this.docid];
-          console.log(recordDelivery);
-          const bestLocation= recordDelivery?.delivery?.bestlocation;
-          this.libraryOwns=this.doesLibraryOwn(recordDelivery);
-          console.log(this.libraryOwns);
-
-          //callNumber lookup should depend on delivery category
-          var dCat=recordDelivery?.delivery?.deliveryCategory;
-          console.log(dCat);
-          console.log(dCat.indexOf("Alma-E"));
-          if(dCat.indexOf("Alma-E")>0){
-            this.delivCat="Alma-E";
-            this.callNumber="N/A";
-            this.location="Electronic Resource";
-            this.availability="Electronic";
-          }
-          if(dCat[0]=="Alma-P" && dCat.length==1){
-            this.delivCat="Alma-P";
-            if(recordDelivery?.delivery?.bestlocation==null){
-              this.location="N/A";
-              this.availability="N/A";
-            }
-            else{
-              var mainLocation=recordDelivery?.delivery?.bestlocation.mainLocation;
-              var subLocation=recordDelivery?.delivery?.bestlocation.subLocation;
-              this.location=mainLocation+" "+subLocation;
-              console.log(this.location);
-              this.availability=recordDelivery?.delivery?.bestlocation?.availabilityStatus;
-            }
-
-
-            this.callNumber = recordDelivery?.delivery?.bestlocation?.callNumber;
-            if (!this.callNumber) {
-              // Delivery data not ready yet → do nothing
-              return;
-            }
-
-
-          }
-
-
-          //this.callNumber = recordDelivery?.delivery?.bestlocation?.callNumber;
-
-                    // this functions to wait until callNumber is available before proceeding
-
-          console.log(this.callNumber);
-
-
-        });
-
-
-      });
-
-      if (['2', '3'].includes(String(userGroup))) { //only displays if user is member of Alma groups 2 or 3 (Fac or Staff)
-        this.validUser=true;
-        
-      }
-      else{
-        this.validUser=false;
+        else{
+          this.location=bestLocation.mainLocation+" "+bestLocation.subLocation;
+          this.availability=bestLocation.availabilityStatus;
+        }
+        this.callNumber = bestLocation?.callNumber;
       }
 
-
-      if(this.validUser==true && this.validFormat==true && (this.isCdi==true || (this.isCdi==false && this.libraryOwns==true))){
-        this.reservesRequestShow = true;
-        console.log("conditions met for reserves request:");
-        console.log("validUser:"+this.validUser+", validFormat:"+this.validFormat+", isCdi:"+this.isCdi+", libraryOwns:"+this.libraryOwns);
-
-      }
-      else{
-        console.log("conditions not met for reserves request:");
-        console.log("validUser:"+this.validUser+", validFormat:"+this.validFormat+", isCdi:"+this.isCdi+", libraryOwns:"+this.libraryOwns);
-      }
-      
-
-
-
+      this.updateDisplay();
     });
+  }
+
+  updateDisplay(){
+    this.reservesRequestShow = this.validUser==true && this.validFormat==true && (this.isCdi==true || (this.isCdi==false && this.libraryOwns==true));
+    console.log("conditions "+(this.reservesRequestShow ? "met" : "not met")+" for reserves request:");
+    console.log("validUser:"+this.validUser+", validFormat:"+this.validFormat+", isCdi:"+this.isCdi+", libraryOwns:"+this.libraryOwns);
   }
 
   getPermaLink(){
@@ -206,10 +173,7 @@ export class ReservesRequestComponent {
     else{
       var availability=deliv?.delivery?.availability;
       var nr="not_restricted";
-      var eAvail=availability.indexOf(nr);
-
-      if(eAvail > -1){return true;}
-      else{return false;}
+      return !!availability?.includes(nr);
 
     }
 
@@ -272,7 +236,7 @@ export class ReservesRequestComponent {
   standalone: true,
   styleUrl: './reserves-request.component.scss',
     imports: [
-
+      CommonModule,
     FormsModule,
    // MatFormFieldModule,  // Add this
     MatInputModule ,
@@ -298,6 +262,7 @@ export class ReservesRequestDialog {
 }*/
 
 export class ReservesRequestDialog {
+
   dialogRef = inject(MatDialogRef<ReservesRequestDialog>);
   data = inject(MAT_DIALOG_DATA);
 
